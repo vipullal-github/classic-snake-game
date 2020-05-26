@@ -57,8 +57,8 @@ var mGame = (function(){
         this.MAX_WIDTH = this.mCanvas.clientWidth;      // In pixels
         this.MAX_HEIGHT = this.mCanvas.clientHeight;    // in pixels
         console.log("SnakeGame:initSelf. Canvas-width is " + this.MAX_WIDTH + " and canvas-height = " +  this.MAX_HEIGHT );
-        this.MAX_GRID_WIDTH = this.MAX_WIDTH / this.mCellSize;
-        this.MAX_GRID_HEIGHT = this.MAX_HEIGHT / this.mCellSize;
+        this.MAX_GRID_WIDTH = Math.floor(this.MAX_WIDTH / this.mCellSize);
+        this.MAX_GRID_HEIGHT = Math.floor(this.MAX_HEIGHT / this.mCellSize);
 
         document.addEventListener('keydown', (e) =>{ this.handleKey(e) }); // For browser only.
         // hook to the buttons...
@@ -66,6 +66,12 @@ var mGame = (function(){
         document.getElementById('btnUp').onclick = (e) => { this.onUpBtnClick(e)};
         document.getElementById('btnDown').onclick = (e) => { this.onDownBtnClick(e)};
         document.getElementById('btnRight').onclick = (e) => { this.onRightBtnClick(e)};
+
+        // add touch handlers
+        this.mCanvas.addEventListener( "touchstart", (evt) =>{ this.handleTouchStart( evt)} );
+        this.mCanvas.addEventListener( "touchmove", (evt) =>{ this.handleTouchMove( evt)} );
+        this.mCanvas.addEventListener( "touchend", (evt) =>{ this.handleTouchEnd( evt)} );
+        this.mCanvas.addEventListener( "touchcancel", (evt) =>{ this.handleTouchCancel( evt)} );
 
     
         this.mSnake = {    
@@ -90,35 +96,97 @@ var mGame = (function(){
     }
 
 
+    //-------------------------------------------------------------
+    SnakeGame.prototype.handleTouchStart = function( evt ){
+        evt.preventDefault();
+        console.log("touch-start called!");
+        var touches = evt.changedTouches;
+        this.mCurrentTouch = touches[0];        // We dont handle multi touch
+    }
+
+    //-------------------------------------------------------------
+    SnakeGame.prototype.handleTouchMove = function( evt ){
+        evt.preventDefault();
+        console.log("touch-move called!");
+        if( !this.mCurrentTouch ){
+            console.log("Wooah! move called without touchstart!");
+            return;
+        }
+        var touch = evt.changedTouches[0];
+        if( touch.identifier === this.mCurrentTouch.identifier ){
+            let dx = Math.floor( touch.clientX - this.mCurrentTouch.clientX );
+            let dy = Math.floor( touch.clientY - this.mCurrentTouch.clientY );
+            if( Math.abs(dx) > Math.abs(dy)){
+                // x-direction
+                if( dx > 0){
+                    this.onRightBtnClick();
+                }
+                else{
+                    this.onLeftBtnClick();
+                }
+            }
+            else{
+                if( dy > 0 ){
+                    this.onDownBtnClick();
+                }
+                else{
+                    this.onUpBtnClick();
+                }
+            }
+        }   
+    }
+
+
+    //-------------------------------------------------------------
+    SnakeGame.prototype.handleTouchEnd = function( evt ){
+        evt.preventDefault();
+        console.log("touch-end called!");
+        var touches = evt.changedTouches;
+        for(i = 0; i< touches.length; i++){
+            var aTouch = touches[i];
+            if( aTouch.identifier == this.mCurrentTouch.identifier ){
+                this.mCurrentTouch = undefined;
+                return;
+            }
+        }
+    }   
+
+    //-------------------------------------------------------------
+    SnakeGame.prototype.handleTouchCancel = function( evt ){
+        evt.preventDefault();
+        console.log("touch-cancel called!");
+        this.handleTouchEnd( evt );
+    }
+
     // --------------------------------------------------------------
-    SnakeGame.prototype.onLeftBtnClick = function(e){
+    SnakeGame.prototype.onLeftBtnClick = function(){
         this.mSnake.dx = -this.mCellSize;
         this.mSnake.dy = 0;
     }
 
     // --------------------------------------------------------------
-    SnakeGame.prototype.onUpBtnClick = function(e){
+    SnakeGame.prototype.onUpBtnClick = function(){
         console.log("Left button was clicked");
         this.mSnake.dy = -this.mCellSize;
         this.mSnake.dx = 0;
     }
 
     // --------------------------------------------------------------
-    SnakeGame.prototype.onDownBtnClick = function(e){
+    SnakeGame.prototype.onDownBtnClick = function(){
         console.log("Left button was clicked");
         this.mSnake.dy = this.mCellSize;
         this.mSnake.dx = 0;
     }
 
     // --------------------------------------------------------------
-    SnakeGame.prototype.onRightBtnClick = function(e){
+    SnakeGame.prototype.onRightBtnClick = function(){
         console.log("Left button was clicked");
         this.mSnake.dx = this.mCellSize;
         this.mSnake.dy = 0;
     }
 
     // --------------------------------------------------------------
-    SnakeGame.prototype.handleKey = function( e) {
+    SnakeGame.prototype.handleKey = function( ) {
         // prevent snake from backtracking on itself by checking that it's 
         // not already moving on the same axis (pressing left while moving    
         // left won't do anything, and pressing right while moving left
@@ -126,22 +194,22 @@ var mGame = (function(){
 
         // left arrow key
         if (e.which === 37 && this.mSnake.dx === 0) {
-            this.onLeftBtnClick( e );
+            this.onLeftBtnClick();
         }
 
         // up arrow key
         else if (e.which === 38 && this.mSnake.dy === 0) {
-            this.onUpBtnClick(e);
+            this.onUpBtnClick();
         }
 
         // right arrow key
         else if (e.which === 39 && this.mSnake.dx === 0) {
-            this.onRightBtnClick(e);
+            this.onRightBtnClick();
         }
 
         // down arrow key
         else if (e.which === 40 && this.mSnake.dy === 0) {
-            this.onDownBtnClick(e);
+            this.onDownBtnClick();
         }
     }
 
