@@ -1,3 +1,5 @@
+![Emulator Grab](images/snake_game.png)
+
 "# classic-snake-game" 
 
 This is my take on the classic Snake game. It is written using Javascript and Cordova. I have tested it on Android. Feel free to port to iOS.
